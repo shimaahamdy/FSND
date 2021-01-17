@@ -92,7 +92,7 @@ def create_app(test_config=None):
     questons = paginate(request,selection)  #list of questions
 
     #check if there is no questions arise 404 error (source not found)
-    if len(questons)==0:
+    if len(selection)==0:
       abort(404)
       
     
