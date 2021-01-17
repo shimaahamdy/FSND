@@ -103,7 +103,7 @@ def create_app(test_config=None):
       'questions':questons,
       'totalQuestions':len(selection),
       'categories':catgories_list,
-      'currentCategory':'no current catgory'
+      'currentCategory':None
       
     })
 
@@ -131,11 +131,10 @@ def create_app(test_config=None):
       
       #return number of questions left and question itself
       selection = Question.query.all()  
-      questions = paginate(request,selection)
+
       return jsonify({
         'success':True,
         'delted': question_id,
-        'questions':questions,
         'totalQuestions': len(selection)
         })
     except:
@@ -151,7 +150,38 @@ def create_app(test_config=None):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab. 
   ''' 
-  
+  @app.route('/questions', methods=['POST'])
+  def create_question():
+    #get requet body and content data
+    body = request.get_json()
+
+    question_text = body.get('question')
+    answer_text = body.get('answer')
+    category_type = body.get('category')
+    difficulty_score = body.get('difficulty')
+    
+    try:
+      if body.get('searchTerm'):
+        return search(request)
+      
+      else:
+        if question_text and answer_text:
+          #create a new question
+          question = Question(question=question_text,answer=answer_text,category=category_type,difficulty=difficulty_score)
+          question.insert()
+          
+          return jsonify({
+            'success': True,
+            'created': question.id,
+            'question': question.format(),
+            'total_books': len(Question.query.all())
+            })
+
+        else:
+          abort(422)
+
+    except:
+        abort(422)
 
   '''
   @TODO: 
@@ -163,6 +193,21 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
+  def search(request):
+    body = request.get_json()
+    search_term = body.get('searchTerm')
+    selected = Question.query.filter(Question.question.ilike('%{}%'.format(search_term))).all()
+    
+    
+    questions = paginate(request,selected)
+    return jsonify({
+      'success':True,
+      'questions':questions,
+      'totalQuestions':len(selected),
+      'currentCategory':None
+    })
+
+    
 
   '''
   @TODO: 
