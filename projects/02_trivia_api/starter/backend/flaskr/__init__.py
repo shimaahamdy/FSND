@@ -16,16 +16,47 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
+  # cors which allow any origin (*) 
+  CORS(app,resources={r"/api/*": {"origins":"*"}})
 
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
+  # CORS Headers 
+  @app.after_request
+  def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+    #list of methods applied
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
   '''
   @TODO: 
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
+  #defalut --> get method
+  @app.route('/categories')
+  def get_catgories():
+    #select all catgories from database
+    selection = Category.query.all()
+
+    #loop over each catgory and add to dictonary
+    #catgories_list has to ba a dictonary not list as fron-end recive as dict
+    catgories_list = {category.id: category.type for category in selection}
+    
+    #check if there is no catogories arise 404 error (source not found)
+    if len(catgories_list)==0:
+      abort(404)
+    
+
+    #return json object
+    return jsonify({
+      'success':True,
+      'categories':catgories_list,
+      'total_categories':len(catgories_list)
+    })
+
 
 
   '''
@@ -40,6 +71,43 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  #paginat function used to page qustions for specific number in one page
+  def paginate(request,selection):
+    #get page number send with request and set default to one if it doesn't exist
+    page = request.args.get('page',1,type=int)
+    start = (page-1)*QUESTIONS_PER_PAGE 
+    end = start+QUESTIONS_PER_PAGE
+    questions= [question.format() for question in selection]
+    return questions[start:end]
+
+  #default get method
+  @app.route('/questions')
+  def get_questions():
+    #select all questions from database and page it 
+    selection = Question.query.all()
+    #selct catgories
+    catgories_selection = Category.query.all()
+    #format catgories
+    catgories_list = {category.id: category.type for category in catgories_selection}
+    questons = paginate(request,selection)  #list of questions
+
+    #check if there is no questions arise 404 error (source not found)
+    if len(questons)==0:
+      abort(404)
+      
+    
+    
+    #return json object
+    return jsonify({
+      'success':True,
+      'questions':questons,
+      'totalQuestions':len(selection),
+      'categories':catgories_list,
+      'currentCategory':'no current catgory'
+      
+    })
+
+
 
   '''
   @TODO: 
