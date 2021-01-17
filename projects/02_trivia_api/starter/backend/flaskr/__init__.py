@@ -128,17 +128,18 @@ def create_app(test_config=None):
       
       #delte question
       question.delete()
-
-      selection = Question.query.all()  #number of current questions
-
+      
+      #return number of questions left and question itself
+      selection = Question.query.all()  
+      questions = paginate(request,selection)
       return jsonify({
         'success':True,
         'delted': question_id,
+        'questions':questions,
         'totalQuestions': len(selection)
-      })
-
-
-
+        })
+    except:
+      abort(422)
   
   '''
   @TODO: 
@@ -148,8 +149,9 @@ def create_app(test_config=None):
 
   TEST: When you submit a question on the "Add" tab, 
   the form will clear and the question will appear at the end of the last page
-  of the questions list in the "List" tab.  
-  '''
+  of the questions list in the "List" tab. 
+  ''' 
+  
 
   '''
   @TODO: 
