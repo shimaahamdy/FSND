@@ -46,12 +46,8 @@ class TriviaTestCase(unittest.TestCase):
                 }
         }
 
-        self.quizz_data_no_question_in_category5= {
-            'previous_questions': [4, 9],
-            'quiz_category': {
-                'type': 'History',
-                'id': 5
-                }
+        self.quizz_data_category= {
+            'previous_questions': [4, 9]
         }
 
         # binds the app to the current context
@@ -185,7 +181,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['question'])
         self.assertEqual(data['question']['category'], 4)
     
+    def test_400_random_question_missing_data(self):
+        res = self.client().post('/quizzes', json=self.quizz_data_category)
+        data = json.loads(res.data)
 
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'bad request structure')
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

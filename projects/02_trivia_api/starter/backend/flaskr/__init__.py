@@ -229,32 +229,40 @@ def create_app(test_config=None):
   if provided, and that is not one of the previous questions.  
   '''
   @app.route('/quizzes', methods=['POST'])
-  def random_question():
+  def play_random_quiz():
+    #get data from requist
+    data = request.get_json()
+    previous_questions = data.get('previous_questions')
+    quiz_category = data.get('quiz_category')
 
-    #get requet body and content data
-    body = request.get_json()
-    quiz_category = body.get('quiz_category')
-    #get prvious questions and if it is not send --> defalut empty list
-    previous_questions = body.get('previous_questions',[])
-    #check if "all" was chosen get all question
-    if quiz_category['id']==0:
+    # check if request completed with needed data
+    if quiz_category is None or previous_questions is None:
+      abort(400)
+      #check if "All" was chosen select all question available including in the preivous
+      #if not select questions with specific catgory
+      #fix bug ---> if it was all we return a question without check if in previous
+    if quiz_category['id'] == 0:
       selection = Question.query.all()
     else:
-      #get questions with specific catgory
-      #befor select question check if that question not found in previous questions
-      selection = Question.query.filter(Question.category == quiz_category['id'], Question.id.notin_(previous_questions)).all()
+      selection = Question.query.filter(Question.category == quiz_category['id']).all()
+        
+    #choose a question from selection in random
+    choosen_question = selection[random.randint(0, len(selection)-1)]
 
-    #check if there questions availble to chosse from with random number
-    if len(selection)>0:
-      choosen_question = selection[random.randint(0, len(selection)-1)]
+    #loop on questions till find a question that not in previous questions
+    infinit_loop = True       #if we found question break loop
+    while infinit_loop:
+      if choosen_question.id in previous_questions:
+        choosen_question = selection[random.randint(0, len(selection)-1)]
+      else:
+        break
 
-      return jsonify({
-        'success':True,
-        'question':choosen_question.format()
-        })
-    #if there is no question availble return None in question
-    else:
-      abort(400)
+    return jsonify({
+      'success': True,
+      'question': choosen_question.format()
+      })
+    
+
 
   '''
   @TODO: 
