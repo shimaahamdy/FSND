@@ -246,7 +246,7 @@ The error that will return when request fail:
         "question": "where is your thoughts came?"
     },
     "success": true,
-    "total_books": 32
+    "total_questions": 32
 }
 ```
 - Sample: `curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"searchTerm": "end"}'`

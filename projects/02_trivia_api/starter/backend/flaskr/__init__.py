@@ -80,10 +80,6 @@ def create_app(test_config=None):
   @app.route('/questions')
   def get_questions():
     
-    #check if page is not send
-    page = request.args.get('page',1,type=int)
-    if page<1:
-      abort(400)
     #select all questions from database 
     selection = Question.query.all()
     #selct catgories
@@ -91,11 +87,11 @@ def create_app(test_config=None):
     #format catgories in dictoanry form
     catgories_list = {category.id: category.type for category in catgories_selection}
     questons = paginate(request,selection)  #list of questions paginate
-
-    #check if there is no questions arise 404 error (source not found)
-    if len(selection)==0:
-      abort(404)
     
+    if len(questons)==0:
+      abort(404)
+    #check if there is no questions arise 404 error (source not found)
+  
     #return json object
     return jsonify({
       'success':True,
@@ -164,7 +160,7 @@ def create_app(test_config=None):
             'success': True,
             'created': question.id,
             'question': question.format(),
-            'total_books': len(Question.query.all())
+            'total_questions': len(Question.query.all())
             })
 
         else:
@@ -192,7 +188,7 @@ def create_app(test_config=None):
       'success':True,
       'questions':questions,
       'totalQuestions':len(selected),
-      'currentCategory':None
+      'currentCategory': None
       })
     
 
@@ -258,11 +254,7 @@ def create_app(test_config=None):
         })
     #if there is no question availble return None in question
     else:
-       return jsonify({
-         'success':True,
-         'question':None
-            
-         })
+      abort(400)
 
   '''
   @TODO: 
