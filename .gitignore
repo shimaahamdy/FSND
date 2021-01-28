@@ -1,7 +1,8 @@
 .vscode
 __pycache__
 venv
-
+.FlaskRecap/env
+.BasicFlaskAuth/env
 # OS generated files #
 ######################
 .DS_Store
