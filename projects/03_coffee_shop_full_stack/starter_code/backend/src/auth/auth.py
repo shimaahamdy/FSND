@@ -31,6 +31,38 @@ class AuthError(Exception):
     return the token part of the header
 '''
 def get_token_auth_header():
+    
+    #get header from request
+    auth_header = request.headers.get('Authorization',None)
+
+    #raise an AuthError if no header is present
+    if not auth_header:
+        return header_missing
+
+    #split bearer and the token
+    header_parts = auth_header.split()
+    barrer = header_parts[0]
+    token = header_parts[1]
+
+    #raise an AuthError if the header is malformed
+    
+    #check if header in barrer_token form
+    if len(header_parts)>2 or not barrer:
+        return barrer_token
+    #check first term is bearer
+    if barrer.lower() != 'bearer':
+        return barrer_not_found
+    #check if token is send
+    if not token:
+        return token_not_found
+
+    #return token
+    return token
+
+    
+
+
+
    raise Exception('Not Implemented')
 
 '''
@@ -84,3 +116,25 @@ def requires_auth(permission=''):
 
         return wrapper
     return requires_auth_decorator
+
+
+# some implmentation of errors:
+header_missing = AuthError({
+    'code': 'missing_authorization_header',
+    'description': 'an authorization header is expected to be send in request.'
+    }, 401)
+
+barrer_not_found = AuthError({
+    'code': 'invalid_header',
+    'description': 'Authorization header must start with "Bearer".'
+    }, 401)
+
+barrer_token = AuthError({
+    'code': 'invalid_header',
+    'description': 'Authorization header must be in form Bearer token.'
+    }, 401)
+
+token_not_found = AuthError({
+    'code': 'invalid_header',
+    'description': 'Token not found.'
+    }, 401)
