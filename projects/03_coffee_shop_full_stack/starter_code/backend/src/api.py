@@ -28,6 +28,7 @@ db_drop_and_create_all()
         or appropriate status code indicating reason for failure
 '''
 @app.route('/drinks')
+#no call for auth as it is public endpoint
 def get_drinks():
 
     #select all drinks from database
@@ -92,10 +93,11 @@ def create_drink(payload):
         if not drink_recipe or not  drink_title:
             abort(400)
         
+        #create a new row in the drinks table
         drink = Drink(title=drink_title,recipe=drink_recipe)
         drink.insert()
 
-        #return json object with long format for drinks
+        #return json object with long format for drink
         return jsonify({
             'success': True,
             'drinks': drink.long()
@@ -125,6 +127,7 @@ def update_drink(payload,drink_id):
     #get drink with id
     drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
 
+    #respond with a 404 error if <id> is not found
     if not drink:
         abort(404)
     
@@ -135,6 +138,7 @@ def update_drink(payload,drink_id):
     drink_recipe = json.dumps(body.get('recipe'))
     
     try:
+        #update the corresponding row for <id>
         if drink_recipe:
             drink.recipe = drink_recipe
         
@@ -163,6 +167,29 @@ def update_drink(payload,drink_id):
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:drink_id>' , methods = ['DELETE'])
+#premission allowed
+@requires_auth('delete:drinks')
+def delete_drink(payload,drink_id):
+    #get drink with id
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+
+    #respond with a 404 error if <id> is not found
+    if not drink:
+        abort(404)
+    
+    try:
+        #delete the corresponding row for <id>
+        drink.delete()
+        #return json object with long format for drinks
+        return jsonify({
+            'success': True,
+            'delete': drink_id
+            })
+    except:
+        abort(422)  
+    
+    
 
 
 ## Error Handling
@@ -172,10 +199,10 @@ Example error handling for unprocessable entity
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
+        "success": False, 
+        "error": 422,
+        "message": "unprocessable"
+        }), 422
 
 '''
 @TODO implement error handlers using the @app.errorhandler(error) decorator
@@ -187,14 +214,44 @@ def unprocessable(error):
                     }), 404
 
 '''
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        "success": False, 
+        "error": 400,
+        "message": "bad request structure"
+      }), 400
 
+@app.errorhandler(403)
+def forbidden_request(error):
+    return jsonify({
+        "success": False, 
+        "error": 403,
+        "message": "forbidden requiest:Permission Not found"
+      }), 403
 '''
 @TODO implement error handler for 404
     error handler should conform to general task above 
 '''
-
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        "success": False, 
+        "error": 404,
+        "message": "resource not found"
+        }), 404
 
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
 '''
+@app.errorhandler(AuthError)
+def auth_error(error):
+    #print the error that arise in auth functions
+    print(error)
+    return jsonify({
+        "success": False,
+        "error": error.status_code,
+        "code": error.error['code'],
+        "message": error.error['description']
+    }), error.status_code

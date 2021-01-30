@@ -5,7 +5,7 @@ from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
+AUTH0_DOMAIN = 'idandauth.us.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'dev'
 
@@ -199,18 +199,3 @@ not_found_key = AuthError({
     'code': 'invalid_header',
     'description': 'Can not find the appropriate key.'
     }, 400)
-#@app.errorhandler(400)
-#def bad_request(error):
-#    return jsonify({
-#        "success": False, 
-#        "error": 400,
-#        "message": "bad request structure"
-#      }), 400
-
-#@app.errorhandler(403)
-#def bad_request(error):
-#    return jsonify({
-#        "success": False, 
-#        "error": 403,
-#        "message": "forbidden requiest:Permission Not found"
-#      }), 403
