@@ -7,7 +7,7 @@ from urllib.request import urlopen
 
 AUTH0_DOMAIN = 'idandauth.us.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'dev'
+API_AUDIENCE = 'image'
 
 ## AuthError Exception
 '''
@@ -77,7 +77,8 @@ def check_permissions(permission, payload):
         abort(400)
     #raise an AuthError if the requested permission string is not in the payload permissions array
     if permission not in payload['permissions']:
-        abort(403)
+        raise premission_not_found
+    return True
 '''
 @TODO implement verify_decode_jwt(token) method
     @INPUTS
@@ -199,3 +200,8 @@ not_found_key = AuthError({
     'code': 'invalid_header',
     'description': 'Can not find the appropriate key.'
     }, 400)
+
+premission_not_found = AuthError({
+    'code': 'unauthorized',
+    'description': 'Permission Not found',
+    }, 401)

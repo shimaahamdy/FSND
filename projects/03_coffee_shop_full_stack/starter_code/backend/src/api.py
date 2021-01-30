@@ -33,10 +33,6 @@ def get_drinks():
 
     #select all drinks from database
     selection = Drink.query.all()
-
-    #check if there is no drinks arise 404 error (source not found)
-    if len(selection)==0:
-      abort(404)
     
     #return json object with short format for drinks
     return jsonify({
@@ -55,14 +51,10 @@ def get_drinks():
 @app.route('/drinks-detail')
 #premission allowed
 @requires_auth('get:drinks-detail')
-def get_drinks_details():
+def get_drinks_details(payload):
     #select all drinks from database
     selection = Drink.query.all()
 
-    #check if there is no drinks arise 404 error (source not found)
-    if len(selection)==0:
-      abort(404)
-    
     #return json object with long format for drinks
     return jsonify({
       'success': True,
@@ -150,7 +142,7 @@ def update_drink(payload,drink_id):
         #return json object with long format for drinks
         return jsonify({
             'success': True,
-            'drinks': drink.long()
+            'drinks': [drink.long()]
             })
     except:
         abort(422)
