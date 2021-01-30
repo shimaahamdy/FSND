@@ -16,7 +16,7 @@ CORS(app)
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
 
 ## ROUTES
 '''
@@ -27,7 +27,21 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks')
+def get_drinks():
 
+    #select all drinks from database
+    selection = Drink.query.all()
+
+    #check if there is no drinks arise 404 error (source not found)
+    if len(selection)==0:
+      abort(404)
+    
+    #return json object with short format for drinks
+    return jsonify({
+      'success': True,
+      'drinks': [drink.short() for drink in selection]
+    })
 
 '''
 @TODO implement endpoint
@@ -37,6 +51,22 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks-detail')
+#premission allowed
+@requires_auth('get:drinks-detail')
+def get_drinks_details():
+    #select all drinks from database
+    selection = Drink.query.all()
+
+    #check if there is no drinks arise 404 error (source not found)
+    if len(selection)==0:
+      abort(404)
+    
+    #return json object with long format for drinks
+    return jsonify({
+      'success': True,
+      'drinks': [drink.long() for drink in selection]
+    })
 
 
 '''
@@ -48,7 +78,33 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks' , methods = ['POST'])
+#premission allowed
+@requires_auth('post:drinks')
+def create_drink(payload):
 
+    #get requet body and content data of request
+    body = request.get_json()
+    drink_title = body.get('title')
+    #convert the object to string
+    drink_recipe = json.dumps(body.get('recipe'))
+    try:
+        if not drink_recipe or not  drink_title:
+            abort(400)
+        
+        drink = Drink(title=drink_title,recipe=drink_recipe)
+        drink.insert()
+
+        #return json object with long format for drinks
+        return jsonify({
+            'success': True,
+            'drinks': drink.long()
+            })
+    except:
+        abort(422)
+
+        
+        
 
 '''
 @TODO implement endpoint
@@ -61,7 +117,41 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:drink_id>' , methods = ['PATCH'])
+#premission allowed
+@requires_auth('patch:drinks')
+def update_drink(payload,drink_id):
 
+    #get drink with id
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+
+    if not drink:
+        abort(404)
+    
+    #get requet body and content data of request
+    body = request.get_json()
+    drink_title = body.get('title')
+    #convert the object to string
+    drink_recipe = json.dumps(body.get('recipe'))
+    
+    try:
+        if drink_recipe:
+            drink.recipe = drink_recipe
+        
+        if drink_title:
+            drink.title = drink_recipe
+        
+        drink.update()
+
+        #return json object with long format for drinks
+        return jsonify({
+            'success': True,
+            'drinks': drink.long()
+            })
+    except:
+        abort(422)
+
+    
 
 '''
 @TODO implement endpoint
