@@ -1,9 +1,11 @@
-from sqlalchemy import Column, String, create_engine
+import os
+from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
 
-database_path = os.environ['DATABASE_URL']
-
+database_name = "test_deployment"
+#updata database with my local device data
+database_path = "postgres://{}:{}@{}/{}".format('postgres','love','localhost:5432', database_name)
 db = SQLAlchemy()
 
 '''
